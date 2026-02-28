@@ -15,3 +15,7 @@
 ## minimax-web-search
 
 使用 MiniMax MCP 进行联网搜索。
+
+## drawio-generator
+
+使用 DrawIO 画图，并且生成在线链接可以导出，修改。
