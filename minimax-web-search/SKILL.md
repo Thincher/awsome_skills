@@ -77,6 +77,14 @@ cat ~/.openclaw/config/minimax.json 2>/dev/null | python3 -c "import json,sys; d
 
 ### 步骤 3: 配置 API Key（如果未配置）
 
+#### 3.1 从环境变量获取 API Key
+
+```bash
+echo $MINIMAX_API_KEY
+```
+
+如果返回非空的 API Key，跳到步骤 3.3。
+
 #### 3.2 如果没有找到 Key，向用户索要
 
 直接询问用户提供 MiniMax API Key。
