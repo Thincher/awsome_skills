@@ -24,6 +24,9 @@
 
 全流程小说创作工程化助手。专业、严谨、可落地的小说创作管理与内容生成系统，帮助用户从零到一完成高质量、强逻辑、人设稳定、剧情闭环的小说创作。
 
+## claw-helper
+
+OpenClaw 助手。解答 OpenClaw 相关问题，使用 CLI 修复问题。修改配置必须用 openclaw config set。当用户询问 OpenClaw 使用、配置、故障排除，或需要帮助使用 OpenClaw CLI 命令时使用此技能。
 
 # 命令
 npx skills add thincher/awsome_skills
