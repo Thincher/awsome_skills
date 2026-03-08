@@ -26,7 +26,7 @@
 
 ## claw-helper
 
-OpenClaw 助手。解答 OpenClaw 相关问题，使用 CLI 修复问题。修改配置必须用 openclaw config set。当用户询问 OpenClaw 使用、配置、故障排除，或需要帮助使用 OpenClaw CLI 命令时使用此技能。
+OpenClaw 助手。解答 OpenClaw 相关问题，使用 CLI 修复问题。当用户询问 OpenClaw 使用、配置、故障排除，或需要帮助使用 OpenClaw CLI 命令时使用此技能。
 
 # 命令
 npx skills add thincher/awsome_skills

@@ -5,6 +5,11 @@
       "source": "thincher/awsome_skills",
       "sourceType": "github",
       "computedHash": "b9c070268f1f0ff3f2c4bb1d419c091ba12f85599a7c09785206623da18a64ff"
+    },
+    "openclaw-helper": {
+      "source": "thincher/awsome_skills",
+      "sourceType": "github",
+      "computedHash": "aa85e000dcbd6969044501ecc4163a77ae5d95b8d07672bfb516ce496abd9e9c"
     }
   }
 }
