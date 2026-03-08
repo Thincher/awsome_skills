@@ -13,6 +13,14 @@
 | {{docsPath}}/start/onboarding.md | 入门流程 |
 | {{docsPath}}/start/wizard.md | 安装向导指南 |
 | {{docsPath}}/start/docs-directory.md | 文档目录导航 |
+| {{docsPath}}/start/bootstrapping.md | 启动引导 |
+| {{docsPath}}/start/hubs.md | Hub 集成 |
+| {{docsPath}}/start/lore.md | 项目背景 |
+| {{docsPath}}/start/onboarding-overview.md | 入门概览 |
+| {{docsPath}}/start/openclaw.md | OpenClaw 介绍 |
+| {{docsPath}}/start/showcase.md | 功能展示 |
+| {{docsPath}}/start/wizard-cli-automation.md | 向导 CLI 自动化 |
+| {{docsPath}}/start/wizard-cli-reference.md | 向导 CLI 参考 |
 
 ### Install - 安装指南
 安装相关文档
@@ -101,6 +109,25 @@
 | {{docsPath}}/tools/firecrawl.md | Firecrawl 工具 |
 | {{docsPath}}/tools/chrome-extension.md | Chrome 扩展 |
 | {{docsPath}}/tools/plugin.md | 插件工具 |
+| {{docsPath}}/tools/acp-agents.md | ACP Agents |
+| {{docsPath}}/tools/agent-send.md | Agent 发送 |
+| {{docsPath}}/tools/apply-patch.md | 应用补丁 |
+| {{docsPath}}/tools/browser-linux-troubleshooting.md | 浏览器 Linux 故障排除 |
+| {{docsPath}}/tools/browser-login.md | 浏览器登录 |
+| {{docsPath}}/tools/clawhub.md | ClawHub |
+| {{docsPath}}/tools/creating-skills.md | 创建技能 |
+| {{docsPath}}/tools/diffs.md | 差异对比 |
+| {{docsPath}}/tools/exec-approvals.md | 执行审批 |
+| {{docsPath}}/tools/llm-task.md | LLM 任务 |
+| {{docsPath}}/tools/lobster.md | Lobster |
+| {{docsPath}}/tools/loop-detection.md | 循环检测 |
+| {{docsPath}}/tools/multi-agent-sandbox-tools.md | 多 Agent 沙箱工具 |
+| {{docsPath}}/tools/pdf.md | PDF 工具 |
+| {{docsPath}}/tools/reactions.md | 反应 |
+| {{docsPath}}/tools/skills-config.md | 技能配置 |
+| {{docsPath}}/tools/slash-commands.md | 斜杠命令 |
+| {{docsPath}}/tools/thinking.md | 思考 |
+| {{docsPath}}/tools/web.md | Web 工具 |
 
 ### Models - 模型
 模型相关文档
@@ -235,9 +262,21 @@
 | {{docsPath}}/reference/secretref-credential-surface.md | SecretRef 凭证表面 |
 | {{docsPath}}/reference/secretref-user-supplied-credentials-matrix.json | SecretRef 用户提供凭证矩阵 |
 | {{docsPath}}/reference/session-management-compaction.md | 会话管理压缩 |
+| {{docsPath}}/reference/wizard.md | 向导参考 |
+| {{docsPath}}/reference/test.md | 测试 |
+| {{docsPath}}/reference/token-use.md | Token 使用 |
+| {{docsPath}}/reference/transcript-hygiene.md | 转录清理 |
 | {{docsPath}}/reference/templates/AGENTS.dev.md | AGENTS.dev 模板 |
 | {{docsPath}}/reference/templates/AGENTS.md | AGENTS 模板 |
-| {{docsPath}}/reference/wizard.md | 向导参考 |
+| {{docsPath}}/reference/templates/BOOT.md | BOOT 模板 |
+| {{docsPath}}/reference/templates/BOOTSTRAP.md | BOOTSTRAP 模板 |
+| {{docsPath}}/reference/templates/HEARTBEAT.md | HEARTBEAT 模板 |
+| {{docsPath}}/reference/templates/IDENTITY.dev.md | IDENTITY.dev 模板 |
+| {{docsPath}}/reference/templates/SOUL.dev.md | SOUL.dev 模板 |
+| {{docsPath}}/reference/templates/SOUL.md | SOUL 模板 |
+| {{docsPath}}/reference/templates/TOOLS.dev.md | TOOLS.dev 模板 |
+| {{docsPath}}/reference/templates/TOOLS.md | TOOLS 模板 |
+| {{docsPath}}/reference/templates/USER.dev.md | USER.dev 模板 |
 
 ### Help - 帮助和故障排除
 帮助文档和故障排除
@@ -302,4 +341,144 @@
 | {{docsPath}}/cli/voicecall.md | 语音通话 |
 | {{docsPath}}/cli/webhooks.md | Webhook 管理 |
 
----
+### Web - Web 界面
+Web 界面相关文档
+
+| 文件 | 描述 |
+|------|------|
+| {{docsPath}}/web/index.md | Web 界面概览 |
+| {{docsPath}}/web/webchat.md | Web 聊天 |
+| {{docsPath}}/web/control-ui.md | 控制界面 |
+| {{docsPath}}/web/dashboard.md | 仪表板 |
+| {{docsPath}}/web/tui.md | 文本用户界面 |
+
+### Concepts - 核心概念
+OpenClaw 架构和核心概念
+
+| 文件 | 描述 |
+|------|------|
+| {{docsPath}}/concepts/architecture.md | 系统架构 |
+| {{docsPath}}/concepts/compaction.md | 内存压缩 |
+| {{docsPath}}/concepts/context.md | 上下文管理 |
+| {{docsPath}}/concepts/features.md | 功能特性 |
+| {{docsPath}}/concepts/markdown-formatting.md | Markdown 格式 |
+| {{docsPath}}/concepts/memory.md | 记忆和上下文管理 |
+| {{docsPath}}/concepts/messages.md | 消息处理 |
+| {{docsPath}}/concepts/oauth.md | OAuth 认证 |
+| {{docsPath}}/concepts/presence.md | 在线状态 |
+| {{docsPath}}/concepts/queue.md | 消息队列 |
+| {{docsPath}}/concepts/retry.md | 重试机制 |
+| {{docsPath}}/concepts/session-pruning.md | 会话修剪 |
+| {{docsPath}}/concepts/session-tool.md | 会话工具 |
+| {{docsPath}}/concepts/session.md | 会话和对话历史 |
+| {{docsPath}}/concepts/streaming.md | 流式输出 |
+| {{docsPath}}/concepts/system-prompt.md | System Prompt 定制 |
+| {{docsPath}}/concepts/timezone.md | 时区设置 |
+| {{docsPath}}/concepts/typebox.md | Typebox 类型系统 |
+| {{docsPath}}/concepts/typing-indicators.md | 输入指示器 |
+| {{docsPath}}/concepts/usage-tracking.md | 使用跟踪 |
+
+### Nodes - 节点
+节点相关功能
+
+| 文件 | 描述 |
+|------|------|
+| {{docsPath}}/nodes/index.md | 节点概览 |
+| {{docsPath}}/nodes/audio.md | 音频节点 |
+| {{docsPath}}/nodes/camera.md | 摄像头节点 |
+| {{docsPath}}/nodes/images.md | 图像节点 |
+| {{docsPath}}/nodes/location-command.md | 位置命令 |
+| {{docsPath}}/nodes/media-understanding.md | 媒体理解 |
+| {{docsPath}}/nodes/talk.md | 语音对话 |
+| {{docsPath}}/nodes/troubleshooting.md | 节点问题排查 |
+| {{docsPath}}/nodes/voicewake.md | 语音唤醒 |
+
+### Plugins - 插件
+插件系统
+
+| 文件 | 描述 |
+|------|------|
+| {{docsPath}}/plugins/agent-tools.md | Agent 工具插件 |
+| {{docsPath}}/plugins/community.md | 社区插件 |
+| {{docsPath}}/plugins/manifest.md | 插件清单 |
+| {{docsPath}}/plugins/voice-call.md | 语音通话插件 |
+| {{docsPath}}/plugins/zalouser.md | Zalo 用户插件 |
+
+### Debug - 调试
+调试指南
+
+| 文件 | 描述 |
+|------|------|
+| {{docsPath}}/debug/node-issue.md | 节点问题调试 |
+
+### Design - 设计
+设计文档
+
+| 文件 | 描述 |
+|------|------|
+| {{docsPath}}/design/kilo-gateway-integration.md | Kilo 网关集成 |
+
+### Diagnostics - 诊断
+诊断工具
+
+| 文件 | 描述 |
+|------|------|
+| {{docsPath}}/diagnostics/flags.md | 诊断标志 |
+
+### Experiments - 实验
+实验性功能
+
+| 文件 | 描述 |
+|------|------|
+| {{docsPath}}/experiments/onboarding-config-protocol.md | 入职配置协议 |
+| {{docsPath}}/experiments/plans/acp-persistent-bindings-discord-channels-telegram-topics.md | ACP 持久绑定 |
+| {{docsPath}}/experiments/plans/acp-thread-bound-agents.md | ACP 线程绑定 Agent |
+| {{docsPath}}/experiments/plans/acp-unified-streaming-refactor.md | ACP 统一流重构 |
+| {{docsPath}}/experiments/plans/browser-evaluate-cdp-refactor.md | 浏览器评估 CDP 重构 |
+| {{docsPath}}/experiments/plans/discord-async-inbound-worker.md | Discord 异步入站工作器 |
+| {{docsPath}}/experiments/plans/openresponses-gateway.md | OpenResponses 网关 |
+| {{docsPath}}/experiments/plans/pty-process-supervision.md | PTY 进程监督 |
+| {{docsPath}}/experiments/plans/session-binding-channel-agnostic.md | 会话绑定通道无关 |
+| {{docsPath}}/experiments/proposals/acp-bound-command-auth.md | ACP 绑定命令认证 |
+| {{docsPath}}/experiments/proposals/model-config.md | 模型配置 |
+| {{docsPath}}/experiments/research/memory.md | 内存研究 |
+
+### Refactor - 重构
+重构计划
+
+| 文件 | 描述 |
+|------|------|
+| {{docsPath}}/refactor/clawnet.md | ClawNet 重构 |
+| {{docsPath}}/refactor/exec-host.md | 执行主机重构 |
+| {{docsPath}}/refactor/outbound-session-mirroring.md | 出站会话镜像 |
+| {{docsPath}}/refactor/plugin-sdk.md | 插件 SDK 重构 |
+| {{docsPath}}/refactor/strict-config.md | 严格配置 |
+
+### Other - 其他文档
+其他相关文档
+
+| 文件 | 描述 |
+|------|------|
+| {{docsPath}}/auth-credential-semantics.md | 认证凭证语义 |
+| {{docsPath}}/brave-search.md | Brave 搜索 |
+| {{docsPath}}/ci.md | CI 配置 |
+| {{docsPath}}/date-time.md | 日期时间 |
+| {{docsPath}}/index.md | 文档首页 |
+| {{docsPath}}/logging.md | 日志 |
+| {{docsPath}}/network.md | 网络 |
+| {{docsPath}}/perplexity.md | Perplexity |
+| {{docsPath}}/pi-dev.md | Pi 开发 |
+| {{docsPath}}/pi.md | Pi |
+| {{docsPath}}/prose.md | Prose |
+| {{docsPath}}/tts.md | TTS |
+| {{docsPath}}/vps.md | VPS |
+
+### Security - 安全
+安全相关文档
+
+| 文件 | 描述 |
+|------|------|
+| {{docsPath}}/security/CONTRIBUTING-THREAT-MODEL.md | 贡献威胁模型 |
+| {{docsPath}}/security/README.md | 安全说明 |
+| {{docsPath}}/security/THREAT-MODEL-ATLAS.md | 威胁模型图集 |
+| {{docsPath}}/security/formal-verification.md | 形式化验证 |
