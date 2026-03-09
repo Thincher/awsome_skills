@@ -1,15 +1,45 @@
 {
   "version": 1,
   "skills": {
+    "book-writer": {
+      "source": "thincher/awsome_skills",
+      "sourceType": "github",
+      "computedHash": "fe766aa7e38fab04e12489dd7178bf33c6eff286d7236bd015653730a32b569d"
+    },
     "claw-helper": {
       "source": "thincher/awsome_skills",
       "sourceType": "github",
       "computedHash": "b9c070268f1f0ff3f2c4bb1d419c091ba12f85599a7c09785206623da18a64ff"
     },
+    "drawio-generator": {
+      "source": "thincher/awsome_skills",
+      "sourceType": "github",
+      "computedHash": "aa029de291178d4cf306373000ce3c9ba06e6f41003fa910b232547bf07c238c"
+    },
+    "glm-understand-image": {
+      "source": "thincher/awsome_skills",
+      "sourceType": "github",
+      "computedHash": "9821b614e869d62d120d72e79ab95f9f428ba95262db6decdc86b94a309e3710"
+    },
+    "glm-web-search": {
+      "source": "thincher/awsome_skills",
+      "sourceType": "github",
+      "computedHash": "a03a15124758c53fa9fb8356ae180fa0dd0d260be06cd21f0396821c31c3b119"
+    },
+    "minimax-understand-image": {
+      "source": "thincher/awsome_skills",
+      "sourceType": "github",
+      "computedHash": "827310420ace64d1ddf81f293d6f8201e999961814c6994788975715dc09a319"
+    },
+    "minimax-web-search": {
+      "source": "thincher/awsome_skills",
+      "sourceType": "github",
+      "computedHash": "7043510db7e348483306da1779fc5af88ce9eb918e9be1e219db0cac22fd75cc"
+    },
     "openclaw-helper": {
       "source": "thincher/awsome_skills",
       "sourceType": "github",
-      "computedHash": "aa85e000dcbd6969044501ecc4163a77ae5d95b8d07672bfb516ce496abd9e9c"
+      "computedHash": "9f4e9138f2fda85c0a06490fc452295d8a50dec46fa78894d230300c36589c70"
     }
   }
 }
