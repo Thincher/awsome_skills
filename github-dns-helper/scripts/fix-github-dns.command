@@ -3,7 +3,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PYTHON_SCRIPT="$SCRIPT_DIR/fix_github_dns.py"
 
 if [ ! -f "$PYTHON_SCRIPT" ]; then
-    echo "❌ 错误: 找不到脚本文件: $PYTHON_SCRIPT"
+    osascript -e 'display dialog "错误: 找不到脚本文件" buttons {"确定"} default button 1'
     exit 1
 fi
 
@@ -17,4 +17,9 @@ echo "=================================================="
 echo ""
 
 python3 "$PYTHON_SCRIPT" "$@"
-exit $?
+
+if [ $? -eq 0 ]; then
+    osascript -e 'display dialog "✅ GitHub DNS 修复完成！" buttons {"确定"} default button 1'
+else
+    osascript -e 'display dialog "❌ GitHub DNS 修复失败！" buttons {"确定"} default button 1'
+fi
