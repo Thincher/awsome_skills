@@ -6,6 +6,7 @@ import datetime
 import argparse
 import platform
 import shutil
+import re
 
 VERSION = "2.0.0"
 DEFAULT_HOSTS_URLS = [
@@ -173,18 +174,6 @@ def check_connectivity(ping_count=1, check_http=True, show_details=False):
     return all_success, success_count, total_count
 
 
-def check_github_connectivity():
-    print("\n🔍 步骤 0: 检查 GitHub 连接状态...")
-    all_success, _, _ = check_connectivity(ping_count=1, check_http=True, show_details=False)
-    return all_success
-
-
-def check_http_connectivity():
-    print("\n🌐 步骤 0.5: 检查 HTTP 连接状态...")
-    all_success, _, _ = check_connectivity(ping_count=1, check_http=True, show_details=False)
-    return all_success
-
-
 def main():
     args = parse_args()
     
@@ -228,7 +217,8 @@ def main():
         
         # 清理旧备份，只保留最新的5个
         try:
-            backup_files = sorted([f for f in os.listdir(BACKUP_DIR) if f.startswith("hosts_")])
+            backup_pattern = re.compile(r'^hosts_\d{8}_\d{6}$')
+            backup_files = sorted([f for f in os.listdir(BACKUP_DIR) if backup_pattern.match(f)])
             if len(backup_files) > 5:
                 files_to_delete = backup_files[:-5]
                 for old_file in files_to_delete:
@@ -244,8 +234,10 @@ def main():
             print(f"  ⚠️  清理备份失败: {e}")
     except PermissionError:
         print_status(f"备份失败：权限不足，请以管理员身份运行", False)
+        sys.exit(1)
     except Exception as e:
         print_status(f"备份失败: {e}", False)
+        sys.exit(1)
 
     print("\n🗑️ 步骤 3: 清理旧的 GitHub hosts...")
     try:
