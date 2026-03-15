@@ -4,6 +4,7 @@ import os
 import sys
 import datetime
 import argparse
+import platform
 
 VERSION = "2.0.0"
 DEFAULT_HOSTS_URLS = [
@@ -13,8 +14,24 @@ DEFAULT_HOSTS_URLS = [
     "https://mirror.ghproxy.com/https://raw.hellogithub.com/hosts",
     "https://ghproxy.com/https://raw.hellogithub.com/hosts"
 ]
-HOSTS_FILE = "/etc/hosts"
-BACKUP_DIR = os.path.expanduser("~/Documents/host_back")
+
+# 平台检测
+SYSTEM = platform.system()
+IS_WINDOWS = SYSTEM == "Windows"
+IS_MACOS = SYSTEM == "Darwin"
+IS_LINUX = SYSTEM == "Linux"
+
+# 平台相关配置
+if IS_WINDOWS:
+    HOSTS_FILE = r"C:\Windows\System32\drivers\etc\hosts"
+    BACKUP_DIR = os.path.expanduser("~/Documents/host_back")
+elif IS_MACOS or IS_LINUX:
+    HOSTS_FILE = "/etc/hosts"
+    BACKUP_DIR = os.path.expanduser("~/Documents/host_back")
+else:
+    HOSTS_FILE = "/etc/hosts"
+    BACKUP_DIR = os.path.expanduser("~/Documents/host_back")
+
 MARKER_START = "# --- GitHub_START ---"
 MARKER_END = "# --- GitHub_END ---"
 
@@ -104,7 +121,12 @@ def check_github_connectivity():
     
     all_success = True
     for domain in domains:
-        returncode, stdout, stderr = run_command(f"ping -c 1 -W 2 {domain}")
+        if IS_WINDOWS:
+            ping_cmd = f"ping -n 1 -w 2000 {domain}"
+        else:
+            ping_cmd = f"ping -c 1 -W 2 {domain}"
+        
+        returncode, stdout, stderr = run_command(ping_cmd)
         if returncode == 0:
             print_status(f"{domain} - 连接正常")
         else:
@@ -204,10 +226,22 @@ def main():
     print_status("已写入 hosts 文件")
 
     print("\n🔄 步骤 5: 刷新 DNS 缓存...")
-    returncode, stdout, stderr = run_command("dscacheutil -flushcache", sudo=False)
-    returncode2, stdout2, stderr2 = run_command("killall -HUP mDNSResponder", sudo=False)
+    success = False
+    
+    if IS_WINDOWS:
+        returncode, stdout, stderr = run_command("ipconfig /flushdns", sudo=False)
+        success = returncode == 0
+    elif IS_MACOS:
+        returncode, stdout, stderr = run_command("dscacheutil -flushcache", sudo=False)
+        returncode2, stdout2, stderr2 = run_command("killall -HUP mDNSResponder", sudo=False)
+        success = returncode == 0 or returncode2 == 0
+    elif IS_LINUX:
+        returncode, stdout, stderr = run_command("sudo systemd-resolve --flush-caches", sudo=False)
+        success = returncode == 0
+    else:
+        print("⚠️  未知平台，跳过 DNS 缓存刷新")
 
-    if returncode == 0 or returncode2 == 0:
+    if success:
         print_status("DNS 缓存已刷新")
     else:
         print_status(f"刷新 DNS 失败", False)
@@ -218,7 +252,12 @@ def main():
     success_count = 0
     for domain in domains:
         print(f"\n  正在 ping {domain}...")
-        returncode, stdout, stderr = run_command(f"ping -c 3 {domain}")
+        if IS_WINDOWS:
+            ping_cmd = f"ping -n 3 {domain}"
+        else:
+            ping_cmd = f"ping -c 3 {domain}"
+        
+        returncode, stdout, stderr = run_command(ping_cmd)
 
         if returncode == 0:
             lines = stdout.strip().split("\n")
