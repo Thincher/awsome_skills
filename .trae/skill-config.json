@@ -1,0 +1,12 @@
+{
+  "disabledSkills": [
+    "glm-web-search",
+    "minimax-understand-image",
+    "minimax-web-search",
+    "claw-helper",
+    "glm-understand-image",
+    "drawio-generator",
+    "book-writer",
+    "openclaw-helper"
+  ]
+}
