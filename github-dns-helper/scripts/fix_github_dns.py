@@ -179,9 +179,6 @@ def main():
         current_hosts = f.read()
 
     old_section_start = current_hosts.find(MARKER_START)
-    if old_section_start == -1:
-        old_section_start = current_hosts.find("# GitHub hosts start")
-
     old_section_end = current_hosts.find(MARKER_END)
 
     if old_section_start != -1 and old_section_end != -1:
@@ -199,7 +196,6 @@ def main():
     final_hosts += github_hosts + "\n"
     final_hosts += f"# Update time: {timestamp}\n"
     final_hosts += f"# Update url: {hosts_urls[0]}\n"
-    final_hosts += "# Star me: https://github.com/521xueweihan/GitHub520\n"
     final_hosts += MARKER_END + "\n"
 
     with open(HOSTS_FILE, "w") as f:
