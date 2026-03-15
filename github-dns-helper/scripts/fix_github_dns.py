@@ -102,6 +102,19 @@ def check_curl_available():
     return returncode == 0
 
 
+def fetch_single_host(url):
+    if not check_curl_available():
+        print_status("curl 命令不可用，请安装 curl", False)
+        return None
+    
+    returncode, stdout, stderr = run_command(f"curl -s --max-time 10 {url}")
+    if returncode == 0 and stdout:
+        github_hosts = extract_github_hosts(stdout)
+        if github_hosts:
+            return github_hosts
+    return None
+
+
 def fetch_hosts(args=None):
     if not check_curl_available():
         print_status("curl 命令不可用，请安装 curl", False)
@@ -217,123 +230,133 @@ def main():
     
     print("\n⚠️  检测到 GitHub 连接异常，开始修复...")
 
-    print("\n📥 步骤 1: 获取最新 hosts...")
-    github_hosts = fetch_hosts(args)
-    if not github_hosts:
-        print_status("所有 hosts 源都获取失败", False)
-        sys.exit(1)
-
-    print(f"找到 GitHub hosts ({len(github_hosts.splitlines())} 条记录)")
-
-    print("\n💾 步骤 2: 备份当前 hosts...")
-    os.makedirs(BACKUP_DIR, exist_ok=True)
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_file = os.path.join(BACKUP_DIR, f"hosts_{timestamp}")
-
-    try:
-        shutil.copy2(HOSTS_FILE, backup_file)
-        print_status(f"已备份到 {backup_file}")
-        
-        # 清理旧备份，只保留最新的5个
-        try:
-            backup_pattern = re.compile(r'^hosts_\d{8}_\d{6}$')
-            backup_files = sorted([f for f in os.listdir(BACKUP_DIR) if backup_pattern.match(f)])
-            if len(backup_files) > 5:
-                files_to_delete = backup_files[:-5]
-                for old_file in files_to_delete:
-                    old_backup_path = os.path.join(BACKUP_DIR, old_file)
-                    try:
-                        os.remove(old_backup_path)
-                        print(f"  🗑️  已删除旧备份: {old_file}")
-                    except PermissionError:
-                        print(f"  ⚠️  删除备份失败 {old_file}: 权限不足")
-                    except Exception as e:
-                        print(f"  ⚠️  删除备份失败 {old_file}: {e}")
-        except Exception as e:
-            print(f"  ⚠️  清理备份失败: {e}")
-    except PermissionError:
-        print_status(f"备份失败：权限不足，请以管理员身份运行", False)
-        sys.exit(1)
-    except Exception as e:
-        print_status(f"备份失败: {e}", False)
-        sys.exit(1)
-
-    print("\n🗑️ 步骤 3: 清理旧的 GitHub hosts...")
-    try:
-        with open(HOSTS_FILE, "r", encoding="utf-8") as f:
-            current_hosts = f.read()
-    except FileNotFoundError:
-        print_status("hosts 文件不存在", False)
-        sys.exit(1)
-    except Exception as e:
-        print_status(f"读取 hosts 文件失败: {e}", False)
-        sys.exit(1)
-
-    old_section_start = current_hosts.find(MARKER_START)
-    old_section_end = current_hosts.find(MARKER_END)
-
-    if old_section_start != -1 and old_section_end != -1:
-        cleaned_hosts = current_hosts[:old_section_start] + current_hosts[old_section_end + len(MARKER_END):]
-    else:
-        cleaned_hosts = current_hosts
-
-    cleaned_hosts = cleaned_hosts.rstrip() + "\n"
-    print_status("已清理旧的 GitHub hosts")
-
-    print("\n✍️ 步骤 4: 写入新的 hosts...")
     hosts_urls = get_hosts_urls(args)
-    timestamp = datetime.datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S%z")
-    timestamp = timestamp[:-2] + ":" + timestamp[-2:]
-    final_hosts = cleaned_hosts + "\n" + MARKER_START + "\n"
-    final_hosts += github_hosts + "\n"
-    final_hosts += f"# Update time: {timestamp}\n"
-    final_hosts += f"# Update url: {hosts_urls[0]}\n"
-    final_hosts += MARKER_END + "\n"
-
-    try:
-        with open(HOSTS_FILE, "w", encoding="utf-8") as f:
-            f.write(final_hosts)
-        print_status("已写入 hosts 文件")
-    except PermissionError:
-        print_status("写入 hosts 文件失败：权限不足，请以管理员身份运行", False)
-        sys.exit(1)
-    except Exception as e:
-        print_status(f"写入 hosts 文件失败：{e}", False)
-        sys.exit(1)
-
-    print("\n🔄 步骤 5: 刷新 DNS 缓存...")
     success = False
     
-    if IS_WINDOWS:
-        returncode, stdout, stderr = run_command("ipconfig /flushdns", sudo=False)
-        success = returncode == 0
-    elif IS_MACOS:
-        returncode, stdout, stderr = run_command("dscacheutil -flushcache", sudo=False)
-        returncode2, stdout2, stderr2 = run_command("killall -HUP mDNSResponder", sudo=False)
-        success = returncode == 0 or returncode2 == 0
-    elif IS_LINUX:
-        returncode, stdout, stderr = run_command("systemd-resolve --flush-caches", sudo=True)
-        if returncode != 0:
-            returncode, stdout, stderr = run_command("nscd -i hosts", sudo=True)
-        if returncode != 0:
-            returncode, stdout, stderr = run_command("rndc flush", sudo=True)
-        success = returncode == 0
-    else:
-        print("⚠️  未知平台，跳过 DNS 缓存刷新")
+    for attempt, url in enumerate(hosts_urls, 1):
+        print(f"\n📥 步骤 1: 获取最新 hosts...")
+        print(f"  尝试 ({attempt}/{len(hosts_urls)}): {url}")
+        
+        github_hosts = fetch_single_host(url)
+        if not github_hosts:
+            print_status(f"从 {url} 获取失败，尝试下一个...", False)
+            continue
+        
+        print(f"找到 GitHub hosts ({len(github_hosts.splitlines())} 条记录)")
 
-    if success:
-        print_status("DNS 缓存已刷新")
-    else:
-        print_status(f"刷新 DNS 失败", False)
+        print("\n💾 步骤 2: 备份当前 hosts...")
+        os.makedirs(BACKUP_DIR, exist_ok=True)
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_file = os.path.join(BACKUP_DIR, f"hosts_{timestamp}")
 
-    print("\n🏓 步骤 6: 验证连接...")
-    all_success, success_count, total_count = check_connectivity(ping_count=3, check_http=True, show_details=True)
+        try:
+            shutil.copy2(HOSTS_FILE, backup_file)
+            print_status(f"已备份到 {backup_file}")
+            
+            # 清理旧备份，只保留最新的5个
+            try:
+                backup_pattern = re.compile(r'^hosts_\d{8}_\d{6}$')
+                backup_files = sorted([f for f in os.listdir(BACKUP_DIR) if backup_pattern.match(f)])
+                if len(backup_files) > 5:
+                    files_to_delete = backup_files[:-5]
+                    for old_file in files_to_delete:
+                        old_backup_path = os.path.join(BACKUP_DIR, old_file)
+                        try:
+                            os.remove(old_backup_path)
+                            print(f"  🗑️  已删除旧备份: {old_file}")
+                        except PermissionError:
+                            print(f"  ⚠️  删除备份失败 {old_file}: 权限不足")
+                        except Exception as e:
+                            print(f"  ⚠️  删除备份失败 {old_file}: {e}")
+            except Exception as e:
+                print(f"  ⚠️  清理备份失败: {e}")
+        except PermissionError:
+            print_status(f"备份失败：权限不足，请以管理员身份运行", False)
+            sys.exit(1)
+        except Exception as e:
+            print_status(f"备份失败: {e}", False)
+            sys.exit(1)
 
+        print("\n🗑️ 步骤 3: 清理旧的 GitHub hosts...")
+        try:
+            with open(HOSTS_FILE, "r", encoding="utf-8") as f:
+                current_hosts = f.read()
+        except FileNotFoundError:
+            print_status("hosts 文件不存在", False)
+            sys.exit(1)
+        except Exception as e:
+            print_status(f"读取 hosts 文件失败: {e}", False)
+            sys.exit(1)
+
+        old_section_start = current_hosts.find(MARKER_START)
+        old_section_end = current_hosts.find(MARKER_END)
+
+        if old_section_start != -1 and old_section_end != -1:
+            cleaned_hosts = current_hosts[:old_section_start] + current_hosts[old_section_end + len(MARKER_END):]
+        else:
+            cleaned_hosts = current_hosts
+
+        cleaned_hosts = cleaned_hosts.rstrip() + "\n"
+        print_status("已清理旧的 GitHub hosts")
+
+        print("\n✍️ 步骤 4: 写入新的 hosts...")
+        timestamp = datetime.datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S%z")
+        timestamp = timestamp[:-2] + ":" + timestamp[-2:]
+        final_hosts = cleaned_hosts + "\n" + MARKER_START + "\n"
+        final_hosts += github_hosts + "\n"
+        final_hosts += f"# Update time: {timestamp}\n"
+        final_hosts += f"# Update url: {url}\n"
+        final_hosts += MARKER_END + "\n"
+
+        try:
+            with open(HOSTS_FILE, "w", encoding="utf-8") as f:
+                f.write(final_hosts)
+            print_status("已写入 hosts 文件")
+        except PermissionError:
+            print_status("写入 hosts 文件失败：权限不足，请以管理员身份运行", False)
+            sys.exit(1)
+        except Exception as e:
+            print_status(f"写入 hosts 文件失败：{e}", False)
+            sys.exit(1)
+
+        print("\n🔄 步骤 5: 刷新 DNS 缓存...")
+        dns_success = False
+        
+        if IS_WINDOWS:
+            returncode, stdout, stderr = run_command("ipconfig /flushdns", sudo=False)
+            dns_success = returncode == 0
+        elif IS_MACOS:
+            returncode, stdout, stderr = run_command("dscacheutil -flushcache", sudo=False)
+            returncode2, stdout2, stderr2 = run_command("killall -HUP mDNSResponder", sudo=False)
+            dns_success = returncode == 0 or returncode2 == 0
+        elif IS_LINUX:
+            returncode, stdout, stderr = run_command("systemd-resolve --flush-caches", sudo=True)
+            if returncode != 0:
+                returncode, stdout, stderr = run_command("nscd -i hosts", sudo=True)
+            if returncode != 0:
+                returncode, stdout, stderr = run_command("rndc flush", sudo=True)
+            dns_success = returncode == 0
+        else:
+            print("⚠️  未知平台，跳过 DNS 缓存刷新")
+
+        if dns_success:
+            print_status("DNS 缓存已刷新")
+        else:
+            print_status(f"刷新 DNS 失败", False)
+
+        print("\n🏓 步骤 6: 验证连接...")
+        all_success, success_count, total_count = check_connectivity(ping_count=3, check_http=True, show_details=True)
+
+        if all_success:
+            success = True
+            break
+        else:
+            print(f"\n⚠️  当前 hosts 源修复不完全成功，尝试下一个源...")
+            continue
+    
     print("\n" + "=" * 50)
-    if success_count == total_count:
+    if success:
         print("✨ 修复完成！所有域名连接正常")
-    elif success_count > 0:
-        print(f"✨ 修复完成！{success_count}/{total_count} 个域名连接正常")
     else:
         print("⚠️  修复完成，但连接仍有问题，请检查网络设置")
     print("=" * 50)
