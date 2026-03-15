@@ -230,11 +230,66 @@ def main():
     
     print("\n⚠️  检测到 GitHub 连接异常，开始修复...")
 
+    print("\n💾 步骤 1: 备份当前 hosts...")
+    os.makedirs(BACKUP_DIR, exist_ok=True)
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_file = os.path.join(BACKUP_DIR, f"hosts_{timestamp}")
+
+    try:
+        shutil.copy2(HOSTS_FILE, backup_file)
+        print_status(f"已备份到 {backup_file}")
+        
+        # 清理旧备份，只保留最新的5个
+        try:
+            backup_pattern = re.compile(r'^hosts_\d{8}_\d{6}$')
+            backup_files = sorted([f for f in os.listdir(BACKUP_DIR) if backup_pattern.match(f)])
+            if len(backup_files) > 5:
+                files_to_delete = backup_files[:-5]
+                for old_file in files_to_delete:
+                    old_backup_path = os.path.join(BACKUP_DIR, old_file)
+                    try:
+                        os.remove(old_backup_path)
+                        print(f"  🗑️  已删除旧备份: {old_file}")
+                    except PermissionError:
+                        print(f"  ⚠️  删除备份失败 {old_file}: 权限不足")
+                    except Exception as e:
+                        print(f"  ⚠️  删除备份失败 {old_file}: {e}")
+        except Exception as e:
+            print(f"  ⚠️  清理备份失败: {e}")
+    except PermissionError:
+        print_status(f"备份失败：权限不足，请以管理员身份运行", False)
+        sys.exit(1)
+    except Exception as e:
+        print_status(f"备份失败: {e}", False)
+        sys.exit(1)
+
+    print("\n🗑️ 步骤 2: 清理旧的 GitHub hosts...")
+    try:
+        with open(HOSTS_FILE, "r", encoding="utf-8") as f:
+            current_hosts = f.read()
+    except FileNotFoundError:
+        print_status("hosts 文件不存在", False)
+        sys.exit(1)
+    except Exception as e:
+        print_status(f"读取 hosts 文件失败: {e}", False)
+        sys.exit(1)
+
+    old_section_start = current_hosts.find(MARKER_START)
+    old_section_end = current_hosts.find(MARKER_END)
+
+    if old_section_start != -1 and old_section_end != -1:
+        cleaned_hosts = current_hosts[:old_section_start] + current_hosts[old_section_end + len(MARKER_END):]
+    else:
+        cleaned_hosts = current_hosts
+
+    cleaned_hosts = cleaned_hosts.rstrip() + "\n"
+    print_status("已清理旧的 GitHub hosts")
+
     hosts_urls = get_hosts_urls(args)
     success = False
     
     for attempt, url in enumerate(hosts_urls, 1):
-        print(f"\n📥 步骤 1: 获取最新 hosts...")
+        print(f"\n📥 步骤 3: 获取最新 hosts...")
         print(f"  尝试 ({attempt}/{len(hosts_urls)}): {url}")
         
         github_hosts = fetch_single_host(url)
@@ -243,61 +298,6 @@ def main():
             continue
         
         print(f"找到 GitHub hosts ({len(github_hosts.splitlines())} 条记录)")
-
-        print("\n💾 步骤 2: 备份当前 hosts...")
-        os.makedirs(BACKUP_DIR, exist_ok=True)
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_file = os.path.join(BACKUP_DIR, f"hosts_{timestamp}")
-
-        try:
-            shutil.copy2(HOSTS_FILE, backup_file)
-            print_status(f"已备份到 {backup_file}")
-            
-            # 清理旧备份，只保留最新的5个
-            try:
-                backup_pattern = re.compile(r'^hosts_\d{8}_\d{6}$')
-                backup_files = sorted([f for f in os.listdir(BACKUP_DIR) if backup_pattern.match(f)])
-                if len(backup_files) > 5:
-                    files_to_delete = backup_files[:-5]
-                    for old_file in files_to_delete:
-                        old_backup_path = os.path.join(BACKUP_DIR, old_file)
-                        try:
-                            os.remove(old_backup_path)
-                            print(f"  🗑️  已删除旧备份: {old_file}")
-                        except PermissionError:
-                            print(f"  ⚠️  删除备份失败 {old_file}: 权限不足")
-                        except Exception as e:
-                            print(f"  ⚠️  删除备份失败 {old_file}: {e}")
-            except Exception as e:
-                print(f"  ⚠️  清理备份失败: {e}")
-        except PermissionError:
-            print_status(f"备份失败：权限不足，请以管理员身份运行", False)
-            sys.exit(1)
-        except Exception as e:
-            print_status(f"备份失败: {e}", False)
-            sys.exit(1)
-
-        print("\n🗑️ 步骤 3: 清理旧的 GitHub hosts...")
-        try:
-            with open(HOSTS_FILE, "r", encoding="utf-8") as f:
-                current_hosts = f.read()
-        except FileNotFoundError:
-            print_status("hosts 文件不存在", False)
-            sys.exit(1)
-        except Exception as e:
-            print_status(f"读取 hosts 文件失败: {e}", False)
-            sys.exit(1)
-
-        old_section_start = current_hosts.find(MARKER_START)
-        old_section_end = current_hosts.find(MARKER_END)
-
-        if old_section_start != -1 and old_section_end != -1:
-            cleaned_hosts = current_hosts[:old_section_start] + current_hosts[old_section_end + len(MARKER_END):]
-        else:
-            cleaned_hosts = current_hosts
-
-        cleaned_hosts = cleaned_hosts.rstrip() + "\n"
-        print_status("已清理旧的 GitHub hosts")
 
         print("\n✍️ 步骤 4: 写入新的 hosts...")
         timestamp = datetime.datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S%z")
