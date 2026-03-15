@@ -7,6 +7,7 @@ import argparse
 import platform
 import shutil
 import re
+import socket
 
 VERSION = "2.0.0"
 DEFAULT_HOSTS_URLS = [
@@ -165,13 +166,28 @@ def check_connectivity(ping_count=1, check_http=True, show_details=False):
     
     if check_http:
         for url in urls:
-            curl_cmd = f"curl -I --max-time 10 {url}"
-            returncode, stdout, stderr = run_command(curl_cmd)
-            if returncode == 0:
-                print_status(f"{url} - HTTP 连接正常")
-                success_count += 1
-            else:
-                print_status(f"{url} - HTTP 连接失败", False)
+            try:
+                parsed_url = url.replace("https://", "").replace("http://", "")
+                host = parsed_url.split("/")[0]
+                port = 443 if url.startswith("https://") else 80
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(10)
+                result = sock.connect_ex((host, port))
+                sock.close()
+                if result == 0:
+                    print_status(f"{url} - HTTP 连接正常")
+                    success_count += 1
+                else:
+                    print_status(f"{url} - HTTP 连接失败", False)
+                    all_success = False
+            except socket.gaierror:
+                print_status(f"{url} - HTTP 连接失败（DNS 解析失败）", False)
+                all_success = False
+            except socket.timeout:
+                print_status(f"{url} - HTTP 连接失败（超时）", False)
+                all_success = False
+            except Exception as e:
+                print_status(f"{url} - HTTP 连接失败（{e}）", False)
                 all_success = False
     
     return all_success, success_count, total_count
