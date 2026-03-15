@@ -137,6 +137,8 @@ def check_connectivity(ping_count=1, check_http=True, show_details=False):
     all_success = True
     success_count = 0
     total_count = len(domains)
+    if check_http:
+        total_count += len(urls)
     
     for domain in domains:
         if IS_WINDOWS:
@@ -167,6 +169,7 @@ def check_connectivity(ping_count=1, check_http=True, show_details=False):
             returncode, stdout, stderr = run_command(curl_cmd)
             if returncode == 0:
                 print_status(f"{url} - HTTP 连接正常")
+                success_count += 1
             else:
                 print_status(f"{url} - HTTP 连接失败", False)
                 all_success = False
