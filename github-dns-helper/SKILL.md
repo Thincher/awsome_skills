@@ -19,11 +19,24 @@ python3 {{skill_path}}/scripts/fix_github_dns.py
 
 **重要提示：**
 - **首次使用需要配置 hosts 文件权限（只需一次）**
-- 修改 hosts 文件需要管理员权限，请执行以下命令：
+- 修改 hosts 文件需要管理员权限，请根据操作系统执行以下命令：
+
+  **macOS:**
   ```bash
   sudo chown $(whoami):staff /etc/hosts
   sudo chmod 644 /etc/hosts
   ```
+
+  **Linux:**
+  ```bash
+  sudo chown $(whoami):$(whoami) /etc/hosts
+  sudo chmod 644 /etc/hosts
+  ```
+
+  **Windows:**
+  - 无需配置权限
+  - 直接以管理员身份运行命令提示符或 PowerShell 即可
+
   ⚠️ **此操作必须由用户在系统终端中手动执行**
   执行后，脚本将不再需要 sudo 权限，可以免密码运行
 

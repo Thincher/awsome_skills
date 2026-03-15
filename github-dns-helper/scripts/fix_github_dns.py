@@ -108,8 +108,7 @@ def fetch_hosts(args=None):
     return None
 
 
-def check_github_connectivity():
-    print("\n🔍 步骤 0: 检查 GitHub 连接状态...")
+def check_connectivity(ping_count=1, check_http=True, show_details=False):
     domains = [
         "github.com",
         "api.github.com",
@@ -118,25 +117,6 @@ def check_github_connectivity():
         "gist.github.com"
     ]
     
-    all_success = True
-    for domain in domains:
-        if IS_WINDOWS:
-            ping_cmd = f"ping -n 1 -w 2000 {domain}"
-        else:
-            ping_cmd = f"ping -c 1 -W 2 {domain}"
-        
-        returncode, stdout, stderr = run_command(ping_cmd)
-        if returncode == 0:
-            print_status(f"{domain} - 连接正常")
-        else:
-            print_status(f"{domain} - 连接失败", False)
-            all_success = False
-    
-    return all_success
-
-
-def check_http_connectivity():
-    print("\n🌐 步骤 0.5: 检查 HTTP 连接状态...")
     urls = [
         "https://github.com",
         "https://api.github.com",
@@ -144,19 +124,54 @@ def check_http_connectivity():
     ]
     
     all_success = True
-    for url in urls:
+    success_count = 0
+    total_count = len(domains)
+    
+    for domain in domains:
         if IS_WINDOWS:
-            curl_cmd = f"curl -I --max-time 10 {url}"
+            ping_cmd = f"ping -n {ping_count} -w 2000 {domain}"
         else:
-            curl_cmd = f"curl -I --max-time 10 {url}"
+            ping_cmd = f"ping -c {ping_count} -W 2 {domain}"
         
-        returncode, stdout, stderr = run_command(curl_cmd)
+        returncode, stdout, stderr = run_command(ping_cmd)
         if returncode == 0:
-            print_status(f"{url} - HTTP 连接正常")
+            if show_details:
+                lines = stdout.strip().split("\n")
+                avg_time = ""
+                for line in lines:
+                    if "avg" in line or "rtt" in line:
+                        avg_time = line
+                        break
+                print_status(f"{domain} - 连接成功 {avg_time if avg_time else ''}")
+            else:
+                print_status(f"{domain} - 连接正常")
+            success_count += 1
         else:
-            print_status(f"{url} - HTTP 连接失败", False)
+            print_status(f"{domain} - 连接失败", False)
             all_success = False
     
+    if check_http:
+        for url in urls:
+            curl_cmd = f"curl -I --max-time 10 {url}"
+            returncode, stdout, stderr = run_command(curl_cmd)
+            if returncode == 0:
+                print_status(f"{url} - HTTP 连接正常")
+            else:
+                print_status(f"{url} - HTTP 连接失败", False)
+                all_success = False
+    
+    return all_success, success_count, total_count
+
+
+def check_github_connectivity():
+    print("\n🔍 步骤 0: 检查 GitHub 连接状态...")
+    all_success, _, _ = check_connectivity(ping_count=1, check_http=True, show_details=False)
+    return all_success
+
+
+def check_http_connectivity():
+    print("\n🌐 步骤 0.5: 检查 HTTP 连接状态...")
+    all_success, _, _ = check_connectivity(ping_count=1, check_http=True, show_details=False)
     return all_success
 
 
@@ -198,7 +213,10 @@ def main():
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_file = os.path.join(BACKUP_DIR, f"hosts_{timestamp}")
 
-    returncode, stdout, stderr = run_command(f"cp {HOSTS_FILE} {backup_file}", sudo=False)
+    if IS_WINDOWS:
+        returncode, stdout, stderr = run_command(f'copy "{HOSTS_FILE}" "{backup_file}"', sudo=False)
+    else:
+        returncode, stdout, stderr = run_command(f"cp {HOSTS_FILE} {backup_file}", sudo=False)
     if returncode == 0:
         print_status(f"已备份到 {backup_file}")
         
@@ -272,36 +290,13 @@ def main():
         print_status(f"刷新 DNS 失败", False)
 
     print("\n🏓 步骤 6: 验证连接...")
-    domains = ["github.com", "api.github.com", "raw.githubusercontent.com", "gist.github.com"]
-
-    success_count = 0
-    for domain in domains:
-        print(f"\n  正在 ping {domain}...")
-        if IS_WINDOWS:
-            ping_cmd = f"ping -n 3 {domain}"
-        else:
-            ping_cmd = f"ping -c 3 {domain}"
-        
-        returncode, stdout, stderr = run_command(ping_cmd)
-
-        if returncode == 0:
-            lines = stdout.strip().split("\n")
-            if lines:
-                avg_time = ""
-                for line in lines:
-                    if "avg" in line or "rtt" in line:
-                        avg_time = line
-                        break
-                print_status(f"{domain} - 连接成功 {avg_time if avg_time else ''}")
-                success_count += 1
-        else:
-            print_status(f"{domain} - 连接失败", False)
+    all_success, success_count, total_count = check_connectivity(ping_count=3, check_http=True, show_details=True)
 
     print("\n" + "=" * 50)
-    if success_count == len(domains):
+    if success_count == total_count:
         print("✨ 修复完成！所有域名连接正常")
     elif success_count > 0:
-        print(f"✨ 修复完成！{success_count}/{len(domains)} 个域名连接正常")
+        print(f"✨ 修复完成！{success_count}/{total_count} 个域名连接正常")
     else:
         print("⚠️  修复完成，但连接仍有问题，请检查网络设置")
     print("=" * 50)
