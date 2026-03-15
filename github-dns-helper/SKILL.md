@@ -21,6 +21,12 @@ python3 {{skill_path}}/scripts/fix_github_dns.py
 - **首次使用需要配置 hosts 文件权限（只需一次）**
 - 修改 hosts 文件需要管理员权限，请根据操作系统执行以下命令：
 
+  **检测操作系统：**
+  ```bash
+  python3 -c "import platform; print(platform.system())"
+  ```
+  输出结果：`Windows`、`Darwin` (macOS) 或 `Linux`
+
   **macOS:**
   ```bash
   sudo chown $(whoami):staff /etc/hosts
