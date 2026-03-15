@@ -135,6 +135,31 @@ def check_github_connectivity():
     return all_success
 
 
+def check_http_connectivity():
+    print("\n🌐 步骤 0.5: 检查 HTTP 连接状态...")
+    urls = [
+        "https://github.com",
+        "https://api.github.com",
+        "https://raw.githubusercontent.com"
+    ]
+    
+    all_success = True
+    for url in urls:
+        if IS_WINDOWS:
+            curl_cmd = f"curl -I --max-time 10 {url}"
+        else:
+            curl_cmd = f"curl -I --max-time 10 {url}"
+        
+        returncode, stdout, stderr = run_command(curl_cmd)
+        if returncode == 0:
+            print_status(f"{url} - HTTP 连接正常")
+        else:
+            print_status(f"{url} - HTTP 连接失败", False)
+            all_success = False
+    
+    return all_success
+
+
 def main():
     args = parse_args()
     
@@ -143,16 +168,17 @@ def main():
     print("=" * 50)
 
     is_connected = check_github_connectivity()
+    is_http_connected = check_http_connectivity()
     
     if args.check:
-        if is_connected:
+        if is_connected and is_http_connected:
             print("\n✅ GitHub 连接正常")
         else:
             print("\n❌ GitHub 连接异常")
         print("=" * 50)
-        sys.exit(0 if is_connected else 1)
+        sys.exit(0 if (is_connected and is_http_connected) else 1)
     
-    if is_connected:
+    if is_connected and is_http_connected:
         print("\n✅ GitHub 连接正常，无需修复")
         print("=" * 50)
         sys.exit(0)
