@@ -113,7 +113,6 @@ def check_github_connectivity():
     domains = [
         "github.com",
         "api.github.com",
-        "githubusercontent.com",
         "github.global.ssl.fastly.net",
         "raw.githubusercontent.com",
         "gist.github.com"
