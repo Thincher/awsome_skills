@@ -19,35 +19,52 @@ def load_api_key():
     except (FileNotFoundError, json.JSONDecodeError):
         return None
 
-def text_to_speech(text, model='speech-2.8-hd', output_file=None, output_format='hex', voice_id='female-shaonv'):
+VALID_EMOTIONS = ['happy', 'sad', 'angry', 'fearful', 'disgusted', 'surprised', 'calm', 'fluent', 'whisper']
+EMOTION_NAMES = {
+    'happy': '高兴',
+    'sad': '悲伤',
+    'angry': '愤怒',
+    'fearful': '害怕',
+    'disgusted': '厌恶',
+    'surprised': '惊讶',
+    'calm': '中性',
+    'fluent': '生动',
+    'whisper': '低语'
+}
+
+def text_to_speech(text, model='speech-2.8-hd', output_file=None, voice_id='female-shaonv', emotion=None):
     api_key = load_api_key()
     if not api_key:
         print("Error: API Key not found. Please configure it first.", file=sys.stderr)
         sys.exit(1)
 
-    url = 'https://api-bj.minimaxi.com/v1/t2a_v2'
+    url = 'https://api.minimaxi.com/v1/t2a_v2'
     
     headers = {
         'Authorization': f'Bearer {api_key}',
         'Content-Type': 'application/json'
     }
 
+    voice_setting = {
+        'voice_id': voice_id,
+        'speed': 1.0,
+        'vol': 1.0,
+        'pitch': 0
+    }
+    
+    if emotion and emotion in VALID_EMOTIONS:
+        voice_setting['emotion'] = emotion
+
     payload = {
         'model': model,
         'text': text,
         'stream': False,
-        'voice_setting': {
-            'voice_id': voice_id,
-            'speed': 1.0,
-            'vol': 1.0,
-            'pitch': 0
-        },
+        'voice_setting': voice_setting,
         'audio_setting': {
             'sample_rate': 32000,
             'format': 'mp3',
             'bitrate': 128000
-        },
-        'output_format': output_format
+        }
     }
 
     try:
@@ -58,20 +75,15 @@ def text_to_speech(text, model='speech-2.8-hd', output_file=None, output_format=
         
         if result.get('base_resp', {}).get('status_code') == 0:
             data = result.get('data')
-            if data:
-                if output_format == 'url' and data.get('audio_url'):
-                    print(json.dumps({'audio_url': data['audio_url']}, indent=2, ensure_ascii=False))
-                elif output_format == 'hex' and data.get('audio'):
-                    if output_file:
-                        import binascii
-                        audio_data = binascii.unhexlify(data['audio'])
-                        with open(output_file, 'wb') as f:
-                            f.write(audio_data)
-                        print(f"Audio saved to: {output_file}")
-                    else:
-                        print(json.dumps({'audio_hex': data['audio']}, indent=2, ensure_ascii=False))
+            if data and data.get('audio'):
+                if output_file:
+                    import binascii
+                    audio_data = binascii.unhexlify(data['audio'])
+                    with open(output_file, 'wb') as f:
+                        f.write(audio_data)
+                    print(f"Audio saved to: {output_file}")
                 else:
-                    print(json.dumps(data, indent=2, ensure_ascii=False))
+                    print(json.dumps({'audio_hex': data['audio']}, indent=2, ensure_ascii=False))
             else:
                 print("Error: No audio data in response", file=sys.stderr)
                 sys.exit(1)
@@ -80,61 +92,6 @@ def text_to_speech(text, model='speech-2.8-hd', output_file=None, output_format=
             print(f"Error: {error_msg}", file=sys.stderr)
             sys.exit(1)
             
-    except requests.exceptions.RequestException as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
-
-def clone_voice(audio_file):
-    api_key = load_api_key()
-    if not api_key:
-        print("Error: API Key not found. Please configure it first.", file=sys.stderr)
-        sys.exit(1)
-
-    url = 'https://api-bj.minimaxi.com/v1/voice_clone/upload_clone_audio'
-    
-    headers = {
-        'Authorization': f'Bearer {api_key}'
-    }
-
-    if not os.path.exists(audio_file):
-        print(f"Error: File not found: {audio_file}", file=sys.stderr)
-        sys.exit(1)
-
-    file_size = os.path.getsize(audio_file)
-    if file_size > 20 * 1024 * 1024:
-        print("Error: File size exceeds 20MB limit", file=sys.stderr)
-        sys.exit(1)
-
-    try:
-        with open(audio_file, 'rb') as f:
-            files = {
-                'file': (os.path.basename(audio_file), f, 'audio/mpeg')
-            }
-            data = {
-                'purpose': 'voice_clone'
-            }
-            
-            response = requests.post(url, headers=headers, files=files, data=data, timeout=300)
-            response.raise_for_status()
-            
-            result = response.json()
-            
-            if result.get('base_resp', {}).get('status_code') == 0:
-                file_info = result.get('file', {})
-                if file_info:
-                    print(json.dumps(file_info, indent=2, ensure_ascii=False))
-                    print("\nVoice cloning initiated. Use the returned voice_id for text-to-speech.")
-                else:
-                    print("Error: No file info in response", file=sys.stderr)
-                    sys.exit(1)
-            else:
-                error_msg = result.get('base_resp', {}).get('status_msg', 'Unknown error')
-                print(f"Error: {error_msg}", file=sys.stderr)
-                sys.exit(1)
-                
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
@@ -190,35 +147,25 @@ if __name__ == '__main__':
         print("Options:", file=sys.stderr)
         print("  --model <model>         Model version (default: speech-2.8-hd)", file=sys.stderr)
         print("  --output <file>         Save audio to file (mp3 format)", file=sys.stderr)
-        print("  --format <format>      Output format: hex or url (default: hex)", file=sys.stderr)
-        print("  --voice <voice_id>     Voice ID (default: female-shaonv)", file=sys.stderr)
-        print("  --list-voices          List available voices", file=sys.stderr)
-        print("  --clone-voice <file>   Clone voice from audio file", file=sys.stderr)
+        print("  --voice <voice_id>      Voice ID (default: female-shaonv)", file=sys.stderr)
+        print("  --emotion <emotion>     Emotion: happy, sad, angry, fearful, disgusted,", file=sys.stderr)
+        print("                          surprised, calm, fluent, whisper", file=sys.stderr)
+        print("  --list-voices           List available voices", file=sys.stderr)
         print("Example:", file=sys.stderr)
         print("  python3 text_to_speech.py '你好世界' --output audio.mp3", file=sys.stderr)
+        print("  python3 text_to_speech.py '今天真开心' --emotion happy --output happy.mp3", file=sys.stderr)
         print("  python3 text_to_speech.py --list-voices", file=sys.stderr)
-        print("  python3 text_to_speech.py --clone-voice my_voice.mp3", file=sys.stderr)
         sys.exit(1)
     
     if '--list-voices' in sys.argv:
         list_voices()
         sys.exit(0)
     
-    if '--clone-voice' in sys.argv:
-        idx = sys.argv.index('--clone-voice')
-        if idx + 1 < len(sys.argv):
-            audio_file = sys.argv[idx + 1]
-            clone_voice(audio_file)
-        else:
-            print("Error: --clone-voice requires a file path", file=sys.stderr)
-            sys.exit(1)
-        sys.exit(0)
-    
     text = sys.argv[1]
     model = 'speech-2.8-hd'
     output_file = None
-    output_format = 'hex'
     voice_id = 'female-shaonv'
+    emotion = None
     
     i = 2
     while i < len(sys.argv):
@@ -228,13 +175,17 @@ if __name__ == '__main__':
         elif sys.argv[i] == '--output' and i + 1 < len(sys.argv):
             output_file = sys.argv[i + 1]
             i += 2
-        elif sys.argv[i] == '--format' and i + 1 < len(sys.argv):
-            output_format = sys.argv[i + 1]
-            i += 2
         elif sys.argv[i] == '--voice' and i + 1 < len(sys.argv):
             voice_id = sys.argv[i + 1]
+            i += 2
+        elif sys.argv[i] == '--emotion' and i + 1 < len(sys.argv):
+            emotion = sys.argv[i + 1]
             i += 2
         else:
             i += 1
     
-    text_to_speech(text, model, output_file, output_format, voice_id)
+    if emotion and emotion not in VALID_EMOTIONS:
+        print(f"Error: Invalid emotion '{emotion}'. Valid options: {', '.join(VALID_EMOTIONS)}", file=sys.stderr)
+        sys.exit(1)
+    
+    text_to_speech(text, model, output_file, voice_id, emotion)

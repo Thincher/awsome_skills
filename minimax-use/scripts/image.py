@@ -25,7 +25,7 @@ def text_to_image(prompt, model='image-01', aspect_ratio='1:1', width=None, heig
         print("Error: API Key not found. Please configure it first.", file=sys.stderr)
         sys.exit(1)
 
-    url = 'https://api.minimax.chat/v1/image/generation'
+    url = 'https://api.minimaxi.com/v1/image_generation'
     
     headers = {
         'Authorization': f'Bearer {api_key}',
@@ -58,36 +58,28 @@ def text_to_image(prompt, model='image-01', aspect_ratio='1:1', width=None, heig
         result = response.json()
         
         if result.get('base_resp', {}).get('status_code') == 0:
-            data = result.get('data', [])
+            data = result.get('data', {}).get('image_urls', [])
             if data:
                 print(f"Image generation successful!")
                 print(f"Generated {len(data)} image(s)")
                 
-                for idx, item in enumerate(data):
-                    if response_format == 'url':
-                        url = item.get('url')
-                        print(f"\nImage {idx + 1}:")
-                        print(f"URL: {url}")
-                        
-                        if output_file:
-                            img_response = requests.get(url, timeout=60)
-                            img_response.raise_for_status()
-                            filename = output_file if n == 1 else f"{output_file.rsplit('.', 1)[0]}_{idx + 1}.{output_file.rsplit('.', 1)[1]}"
-                            with open(filename, 'wb') as f:
-                                f.write(img_response.content)
-                            print(f"Saved to: {filename}")
-                    else:
-                        b64_json = item.get('b64_json')
-                        print(f"\nImage {idx + 1}:")
-                        print(f"Base64: {b64_json[:50]}...")
-                        
-                        if output_file:
-                            import base64
-                            img_data = base64.b64decode(b64_json)
-                            filename = output_file if n == 1 else f"{output_file.rsplit('.', 1)[0]}_{idx + 1}.{output_file.rsplit('.', 1)[1]}"
-                            with open(filename, 'wb') as f:
-                                f.write(img_data)
-                            print(f"Saved to: {filename}")
+                for idx, url in enumerate(data):
+                    print(f"\nImage {idx + 1}:")
+                    print(f"URL: {url}")
+                    
+                    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                    url_file = os.path.join(script_dir, 'image_urls.txt')
+                    with open(url_file, 'a') as f:
+                        f.write(f"{url}\n")
+                    print(f"URL saved to: {url_file}")
+                    
+                    if output_file:
+                        img_response = requests.get(url, timeout=60)
+                        img_response.raise_for_status()
+                        filename = output_file if n == 1 else f"{output_file.rsplit('.', 1)[0]}_{idx + 1}.{output_file.rsplit('.', 1)[1]}"
+                        with open(filename, 'wb') as f:
+                            f.write(img_response.content)
+                        print(f"Saved to: {filename}")
                 
                 return data
             else:
@@ -111,7 +103,7 @@ def image_to_image(prompt, subject_reference, model='image-01', aspect_ratio='1:
         print("Error: API Key not found. Please configure it first.", file=sys.stderr)
         sys.exit(1)
 
-    url = 'https://api.minimax.chat/v1/image/generation'
+    url = 'https://api.minimaxi.com/v1/image_generation'
     
     headers = {
         'Authorization': f'Bearer {api_key}',
@@ -145,36 +137,22 @@ def image_to_image(prompt, subject_reference, model='image-01', aspect_ratio='1:
         result = response.json()
         
         if result.get('base_resp', {}).get('status_code') == 0:
-            data = result.get('data', [])
+            data = result.get('data', {}).get('image_urls', [])
             if data:
                 print(f"Image-to-image generation successful!")
                 print(f"Generated {len(data)} image(s)")
                 
-                for idx, item in enumerate(data):
-                    if response_format == 'url':
-                        url = item.get('url')
-                        print(f"\nImage {idx + 1}:")
-                        print(f"URL: {url}")
-                        
-                        if output_file:
-                            img_response = requests.get(url, timeout=60)
-                            img_response.raise_for_status()
-                            filename = output_file if n == 1 else f"{output_file.rsplit('.', 1)[0]}_{idx + 1}.{output_file.rsplit('.', 1)[1]}"
-                            with open(filename, 'wb') as f:
-                                f.write(img_response.content)
-                            print(f"Saved to: {filename}")
-                    else:
-                        b64_json = item.get('b64_json')
-                        print(f"\nImage {idx + 1}:")
-                        print(f"Base64: {b64_json[:50]}...")
-                        
-                        if output_file:
-                            import base64
-                            img_data = base64.b64decode(b64_json)
-                            filename = output_file if n == 1 else f"{output_file.rsplit('.', 1)[0]}_{idx + 1}.{output_file.rsplit('.', 1)[1]}"
-                            with open(filename, 'wb') as f:
-                                f.write(img_data)
-                            print(f"Saved to: {filename}")
+                for idx, url in enumerate(data):
+                    print(f"\nImage {idx + 1}:")
+                    print(f"URL: {url}")
+                    
+                    if output_file:
+                        img_response = requests.get(url, timeout=60)
+                        img_response.raise_for_status()
+                        filename = output_file if n == 1 else f"{output_file.rsplit('.', 1)[0]}_{idx + 1}.{output_file.rsplit('.', 1)[1]}"
+                        with open(filename, 'wb') as f:
+                            f.write(img_response.content)
+                        print(f"Saved to: {filename}")
                 
                 return data
             else:
