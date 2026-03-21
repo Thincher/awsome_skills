@@ -13,11 +13,11 @@ VERSION = "2.0.0"
 DEFAULT_HOSTS_URLS = [
     "https://raw.hellogithub.com/hosts",
     "https://fastly.jsdelivr.net/gh/521xueweihan/GitHub520@main/hosts",
-    "https://fastly.jsdelivr.net/gh/ittuann/GitHub-IP-hosts@main/hosts",
-    "https://fastly.jsdelivr.net/gh/AutismSuperman/github-dns/hosts",
-    "https://fastly.jsdelivr.net/gh/fliu2476/gh-hosts@main/hosts",
-    "https://raw.githubusercontent.com/maxiaof/github-hosts/master/hosts",
-    "https://raw.githubusercontent.com/godfather1103/github-hosts/master/hosts"
+    # "https://fastly.jsdelivr.net/gh/ittuann/GitHub-IP-hosts@main/hosts",
+    # "https://fastly.jsdelivr.net/gh/AutismSuperman/github-dns/hosts",
+    # "https://fastly.jsdelivr.net/gh/fliu2476/gh-hosts@main/hosts",
+    # "https://raw.githubusercontent.com/maxiaof/github-hosts/master/hosts",
+    # "https://raw.githubusercontent.com/godfather1103/github-hosts/master/hosts"
 ]
 
 # 平台检测
