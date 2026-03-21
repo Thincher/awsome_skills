@@ -6,7 +6,7 @@ import sys
 import os
 
 def load_api_key():
-    config_path = os.path.expanduser('~/.openclaw/config/minimax.json')
+    config_path = os.path.expanduser('~/apikey.json')
     
     api_key = os.environ.get('MINIMAX_API_KEY')
     if api_key:
@@ -15,7 +15,7 @@ def load_api_key():
     try:
         with open(config_path, 'r') as f:
             config = json.load(f)
-            return config.get('api_key')
+            return config.get('MINIMAX_API_KEY')
     except (FileNotFoundError, json.JSONDecodeError):
         return None
 
