@@ -1,11 +1,11 @@
 ---
 name: minimax-use
-description: 使用 MiniMax 进行网络搜索。触发条件：用户要求进行网络搜索、在线搜索、查找最新资讯。其他功能（图像理解、图片生成）需要用户明确指定使用 MiniMax 才会触发。
+description: 使用 MiniMax 进行网络搜索。触发条件：用户要求进行网络搜索、在线搜索、查找最新资讯。其他功能（图像理解、图片生成、语音合成）需要用户明确指定使用 MiniMax 才会触发。
 ---
 
 # minimax-use
 
-使用 MiniMax 进行网络搜索、图像理解和图片生成。
+使用 MiniMax 进行网络搜索、图像理解、图片生成和语音合成。
 
 ## 功能一：网络搜索
 
@@ -124,3 +124,36 @@ python3 {curDir}/scripts/image.py --subject /path/to/image.jpg "猫咪玩耍"
 - 3:4 (864x1152)
 - 9:16 (720x1280)
 - 21:9 (1344x576) (仅适用于 image-01)
+
+## 功能四：语音合成 (Text-to-Speech)
+
+### 调用 text_to_speech
+
+使用脚本调用 MiniMax 语音合成 API：
+
+```bash
+python3 {curDir}/scripts/text_to_speech.py "<文本>" [选项]
+```
+
+**示例：**
+
+```bash
+# 基础语音合成
+python3 {curDir}/scripts/text_to_speech.py "你好世界" --output audio.mp3
+
+# 指定音色和情感
+python3 {curDir}/scripts/text_to_speech.py "今天真开心" --voice female-shaonv --emotion happy --output happy.mp3
+
+# 列出所有可用音色
+python3 {curDir}/scripts/text_to_speech.py --list-voices
+```
+
+### 选项说明
+
+| 选项 | 说明 | 默认值 |
+|------|------|--------|
+| --model | 模型版本 | speech-2.8-hd |
+| --output | 保存音频到文件（mp3 格式） | 无 (直接输出包含十六进制数据的 JSON) |
+| --voice | 音色 ID | female-shaonv |
+| --emotion | 情感 (happy, sad, angry, fearful, disgusted, surprised, calm, fluent, whisper) | 无 |
+| --list-voices | 列出所有可用的音色列表 | 无 |
